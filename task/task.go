@@ -14,23 +14,15 @@ import (
 	"time"
 )
 
-type State int
-
-const (
-	Pending State = iota
-	Scheduled
-	Running
-	Completed
-	Failed
-)
-
 type Task struct {
 	ID            uuid.UUID
+	ContainerID   string
 	Name          string
 	State         State
 	Image         string
-	Memory        int
-	Disk          int
+	Memory        int64
+	Disk          int64
+	Cpu           float64
 	ExposedPorts  nat.PortSet
 	PortBindings  map[string]string
 	RestartPolicy string
@@ -50,12 +42,26 @@ type Config struct {
 	AttachStdin   bool
 	AttachStdout  bool
 	AttachStderr  bool
+	ExposedPorts  nat.PortSet
 	Cmd           []string
 	Image         string
+	Cpu           float64
 	Memory        int64
 	Disk          int64
 	Env           []string
 	RestartPolicy string
+}
+
+func NewConfig(t *Task) *Config {
+	return &Config{
+		Name:          t.Name,
+		ExposedPorts:  t.ExposedPorts,
+		Image:         t.Image,
+		Cpu:           t.Cpu,
+		Memory:        t.Memory,
+		Disk:          t.Disk,
+		RestartPolicy: t.RestartPolicy,
+	}
 }
 
 type Docker struct {
@@ -64,10 +70,18 @@ type Docker struct {
 	ContainerId string
 }
 
+func NewDocker(c *Config) *Docker {
+	dc, _ := client.NewClientWithOpts(client.FromEnv)
+	return &Docker{
+		Client: dc,
+		Config: *c,
+	}
+}
+
 type DockerResult struct {
 	Error       error
 	Action      string
-	ContainerId string
+	ContainerID string
 	Result      string
 }
 
@@ -157,5 +171,5 @@ func (d *Docker) Run() DockerResult {
 
 	stdcopy.StdCopy(os.Stdout, os.Stderr, out)
 
-	return DockerResult{ContainerId: resp.ID, Action: "start", Result: "success"}
+	return DockerResult{ContainerID: resp.ID, Action: "start", Result: "success"}
 }

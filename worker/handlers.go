@@ -21,12 +21,12 @@ func (a *Api) StartTaskHandler(w http.ResponseWriter, r *http.Request) {
 	err := d.Decode(&te)
 
 	if err != nil {
-		msg := fmt.Sprintf("Error unmarshalling body: %v\n", err)
+		msg := fmt.Sprintf("Error unmarshalling request body: %v\n", err)
 		log.Printf("%s", msg)
-		w.WriteHeader(400)
+		w.WriteHeader(http.StatusBadRequest)
 
 		e := ErrResponse{
-			HTTPStatusCode: 400,
+			HTTPStatusCode: http.StatusBadRequest,
 			Message:        msg,
 		}
 
@@ -36,7 +36,7 @@ func (a *Api) StartTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 	a.Worker.AddTask(te.Task)
 	log.Printf("Added task %v", te.Task.ID)
-	w.WriteHeader(201)
+	w.WriteHeader(http.StatusCreated)
 
 	json.NewEncoder(w).Encode(te.Task)
 }
@@ -46,7 +46,7 @@ func (a *Api) StopTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 	if taskID == "" {
 		log.Printf("No taskID passed in request.\n")
-		w.WriteHeader(400)
+		w.WriteHeader(http.StatusBadRequest)
 	}
 
 	tID, _ := uuid.Parse(taskID)
@@ -54,8 +54,11 @@ func (a *Api) StopTaskHandler(w http.ResponseWriter, r *http.Request) {
 	_, ok := a.Worker.Db[tID]
 
 	if !ok {
-		log.Printf("No task with ID %v found", tID)
-		w.WriteHeader(404)
+		defer handlePanic()
+		w.WriteHeader(http.StatusNotFound)
+
+		err := fmt.Sprintf("Task not found %v", tID)
+		w.Write([]byte(err))
 	}
 
 	taskToStop := a.Worker.Db[tID]
@@ -68,11 +71,17 @@ func (a *Api) StopTaskHandler(w http.ResponseWriter, r *http.Request) {
 	a.Worker.AddTask(taskCopy)
 
 	log.Printf("Added task %v to stop container %v\n", taskToStop.ID, taskToStop.ContainerID)
-	w.WriteHeader(204)
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (a *Api) GetTaskHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(a.Worker.GetTasks())
+}
+
+func handlePanic() {
+	if r := recover(); r != nil {
+		log.Printf("Recovered from panic: %v", r)
+	}
 }

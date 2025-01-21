@@ -12,9 +12,11 @@ import (
 )
 
 type Worker struct {
-	Name  string
-	Queue queue.Queue
-	Db    map[uuid.UUID]*task.Task
+	Name      string
+	Queue     queue.Queue
+	Db        map[uuid.UUID]*task.Task
+	Stats     *Stats
+	TaskCount int
 }
 
 func (w *Worker) GetTasks() []*task.Task {
@@ -28,7 +30,12 @@ func (w *Worker) GetTasks() []*task.Task {
 }
 
 func (w *Worker) CollectStats() {
-	fmt.Println("Collecting stats...")
+	for {
+		log.Println("Collecting stats...")
+		w.Stats = GetStats()
+		w.Stats.TaskCount = w.TaskCount
+		time.Sleep(15 * time.Second)
+	}
 }
 
 func (w *Worker) StartTask(t task.Task) task.DockerResult {

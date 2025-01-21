@@ -80,6 +80,12 @@ func (a *Api) GetTaskHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(a.Worker.GetTasks())
 }
 
+func (a *Api) GetStatsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(a.Worker.Stats)
+}
+
 func handlePanic() {
 	if r := recover(); r != nil {
 		log.Printf("Recovered from panic: %v", r)

@@ -33,6 +33,9 @@ func main() {
 
 	go api.Start()
 
+	log.Println("Waiting for API to start...")
+	time.Sleep(10 * time.Second)
+
 	workers := []string{fmt.Sprintf("%s:%d", host, port)}
 
 	m := manager.New(workers)

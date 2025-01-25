@@ -126,3 +126,20 @@ func (w *Worker) RunTask() task.DockerResult {
 
 	return result
 }
+
+func runTasks(w *Worker) task.DockerResult {
+	for {
+		if w.Queue.Len() != 0 {
+			result := w.RunTask()
+			if result.Error != nil {
+				log.Printf("Error running task: %v\n", result.Error)
+			}
+		} else {
+			log.Printf("No tasks to process currently.\n")
+		}
+
+		log.Printf("Sleeping for 10 seconds.")
+		time.Sleep(10 * time.Second)
+
+	}
+}

@@ -16,8 +16,11 @@ import (
 
 func main() {
 
-	host := os.Getenv("ORCS_HOST")
-	port, _ := strconv.Atoi(os.Getenv("ORCS_PORT"))
+	mhost := os.Getenv("MANAGER_HOST")
+	mport, _ := strconv.Atoi(os.Getenv("MANAGER_PORT"))
+
+	whost := os.Getenv("WORKER_HOST")
+	wport, _ := strconv.Atoi(os.Getenv("WORKER_PORT"))
 
 	fmt.Println("Starting Orcs Worker")
 
@@ -26,19 +29,24 @@ func main() {
 		Db:    make(map[uuid.UUID]*task.Task),
 	}
 
-	api := worker.Api{Address: host, Port: port, Worker: &w}
+	wapi := worker.Api{Address: whost, Port: wport, Worker: &w}
 
 	go w.CollectStats()
 	go runTasks(&w)
 
-	go api.Start()
+	go wapi.Start()
 
 	log.Println("Waiting for API to start...")
 	time.Sleep(10 * time.Second)
 
-	workers := []string{fmt.Sprintf("%s:%d", host, port)}
-
+	fmt.Println("Starting orcs manager")
+	workers := []string{fmt.Sprintf("%s:%d", whost, wport)}
 	m := manager.New(workers)
+	mapi := manager.Api{Address: mhost, Port: mport, Manager: m}
+
+	go m.ProcessTasks()
+	go m.UpdateTasksForever()
+	mapi.Start()
 
 	for i := 0; i < 3; i++ {
 		t := task.Task{
@@ -58,21 +66,6 @@ func main() {
 		m.SendWork()
 	}
 
-	go func() {
-		for {
-			fmt.Printf("[Manager] Updating tasks from %d workers\n", len(m.Workers))
-			m.UpdateTasks()
-			time.Sleep(15 * time.Second)
-		}
-	}()
-
-	for {
-		for _, t := range m.TaskDb {
-			fmt.Printf("[Manager] Task: id: %s, state: %d\n", t.ID, t.State)
-			time.Sleep(15 * time.Second)
-		}
-	}
-
 }
 
 func runTasks(w *worker.Worker) {
@@ -88,6 +81,5 @@ func runTasks(w *worker.Worker) {
 
 		log.Printf("Sleeping for 10 seconds.")
 		time.Sleep(10 * time.Second)
-
 	}
 }

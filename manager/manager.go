@@ -58,7 +58,6 @@ func New(workers []string) *Manager {
 		WorkerTaskMap: workerTaskMap,
 		TaskWorkerMap: taskWorkerMap,
 	}
-
 }
 
 func (m *Manager) SelectWorker() string {

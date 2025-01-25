@@ -71,7 +71,12 @@ type Docker struct {
 }
 
 func NewDocker(c *Config) *Docker {
-	dc, _ := client.NewClientWithOpts(client.FromEnv)
+	dc, err := client.NewClientWithOpts(client.FromEnv)
+
+	if err != nil {
+		log.Fatalf("Error creating docker client, is the daemon running?")
+	}
+
 	return &Docker{
 		Client: dc,
 		Config: *c,

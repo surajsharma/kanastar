@@ -40,7 +40,7 @@ func main() {
 	time.Sleep(10 * time.Second)
 
 	fmt.Println("Starting orcs manager")
-	workers := []string{fmt.Sprintf("%s:%d", whost, wport)}
+	workers := []string{fmt.Sprintf("%s: %d", whost, wport)}
 	m := manager.New(workers)
 	mapi := manager.Api{Address: mhost, Port: mport, Manager: m}
 

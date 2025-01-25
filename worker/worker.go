@@ -89,7 +89,7 @@ func (w *Worker) AddTask(t task.Task) {
 	w.Queue.Enqueue(t)
 }
 
-func (w *Worker) RunTask() task.DockerResult {
+func (w *Worker) runTask() task.DockerResult {
 
 	t := w.Queue.Dequeue()
 
@@ -127,10 +127,10 @@ func (w *Worker) RunTask() task.DockerResult {
 	return result
 }
 
-func runTasks(w *Worker) task.DockerResult {
+func (w *Worker) RunTasks() {
 	for {
 		if w.Queue.Len() != 0 {
-			result := w.RunTask()
+			result := w.runTask()
 			if result.Error != nil {
 				log.Printf("Error running task: %v\n", result.Error)
 			}

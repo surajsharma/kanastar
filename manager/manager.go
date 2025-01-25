@@ -83,7 +83,9 @@ func (m *Manager) UpdateTasks() {
 		resp, err := http.Get(url)
 
 		if err != nil {
-			log.Printf("Error connecting to %v: %v", worker, err)
+			log.Printf("Error connecting to %v:%v, retrying in 5 seconds", worker, err)
+			time.Sleep(5 * time.Second)
+			defer m.UpdateTasks()
 		}
 
 		if resp.StatusCode != http.StatusOK {
@@ -191,4 +193,10 @@ func (m *Manager) GetTasks() []*task.Task {
 
 	return tasks
 
+}
+
+func handlePanic() {
+	if r := recover(); r != nil {
+		log.Printf("Recovered from panic: %v", r)
+	}
 }

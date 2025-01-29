@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/client"
@@ -59,6 +60,11 @@ type Docker struct {
 	ContainerId string
 }
 
+type DockerInspectResponse struct {
+	Error     error
+	Container *types.ContainerJSON
+}
+
 func NewConfig(t *Task) *Config {
 	return &Config{
 		Name:          t.Name,
@@ -69,6 +75,13 @@ func NewConfig(t *Task) *Config {
 		Disk:          t.Disk,
 		RestartPolicy: t.RestartPolicy,
 	}
+}
+
+type DockerResult struct {
+	Error       error
+	Action      string
+	ContainerID string
+	Result      string
 }
 
 func NewDocker(c *Config) *Docker {
@@ -82,13 +95,6 @@ func NewDocker(c *Config) *Docker {
 		Client: dc,
 		Config: *c,
 	}
-}
-
-type DockerResult struct {
-	Error       error
-	Action      string
-	ContainerID string
-	Result      string
 }
 
 func (d *Docker) Stop(id string) DockerResult {

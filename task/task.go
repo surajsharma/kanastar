@@ -2,16 +2,17 @@ package task
 
 import (
 	"context"
+	"io"
+	"log"
+	"os"
+	"time"
+
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/docker/go-connections/nat"
 	"github.com/google/uuid"
-	"io"
-	"log"
-	"os"
-	"time"
 )
 
 type Task struct {
@@ -52,6 +53,12 @@ type Config struct {
 	RestartPolicy string
 }
 
+type Docker struct {
+	Client      *client.Client
+	Config      Config
+	ContainerId string
+}
+
 func NewConfig(t *Task) *Config {
 	return &Config{
 		Name:          t.Name,
@@ -62,12 +69,6 @@ func NewConfig(t *Task) *Config {
 		Disk:          t.Disk,
 		RestartPolicy: t.RestartPolicy,
 	}
-}
-
-type Docker struct {
-	Client      *client.Client
-	Config      Config
-	ContainerId string
 }
 
 func NewDocker(c *Config) *Docker {

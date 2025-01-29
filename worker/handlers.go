@@ -3,7 +3,7 @@ package worker
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/surajsharma/orcs/task"
+	"github.com/surajsharma/kanastar/task"
 	"log"
 	"net/http"
 

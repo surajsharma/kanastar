@@ -9,7 +9,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	"github.com/surajsharma/orcs/task"
+	"github.com/surajsharma/kanastar/task"
 )
 
 func (a *Api) StartTaskHandler(w http.ResponseWriter, r *http.Request) {

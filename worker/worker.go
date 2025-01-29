@@ -8,7 +8,7 @@ import (
 
 	"github.com/golang-collections/collections/queue"
 	"github.com/google/uuid"
-	"github.com/surajsharma/orcs/task"
+	"github.com/surajsharma/kanastar/task"
 )
 
 type Worker struct {

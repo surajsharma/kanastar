@@ -1,4 +1,4 @@
-module github.com/surajsharma/orcs
+module github.com/surajsharma/kanastar
 
 go 1.23.5
 

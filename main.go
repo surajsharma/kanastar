@@ -7,9 +7,9 @@ import (
 
 	"github.com/golang-collections/collections/queue"
 	"github.com/google/uuid"
-	"github.com/surajsharma/orcs/manager"
-	"github.com/surajsharma/orcs/task"
-	"github.com/surajsharma/orcs/worker"
+	"github.com/surajsharma/kanastar/manager"
+	"github.com/surajsharma/kanastar/task"
+	"github.com/surajsharma/kanastar/worker"
 )
 
 func main() {
@@ -20,7 +20,7 @@ func main() {
 	whost := os.Getenv("WORKER_HOST")
 	wport, _ := strconv.Atoi(os.Getenv("WORKER_PORT"))
 
-	fmt.Println("⏳ Starting Cube worker...")
+	fmt.Println("⏳ Starting worker...")
 
 	// why start a single worker when manager has all of them?
 	// because the manager needs at least one, see ln 41
@@ -36,7 +36,7 @@ func main() {
 	go w.CollectStats()
 	go wapi.Start()
 
-	fmt.Println("⏳ Starting Cube manager...")
+	fmt.Println("⏳ Starting manager...")
 
 	workers := []string{fmt.Sprintf("%s:%d", whost, wport)}
 	m := manager.New(workers)

@@ -26,6 +26,7 @@ type Task struct {
 	Disk          int64
 	Cpu           float64
 	ExposedPorts  nat.PortSet
+	HostPorts     nat.PortMap
 	PortBindings  map[string]string
 	RestartPolicy string
 	StartTime     time.Time
@@ -184,4 +185,17 @@ func (d *Docker) Run() DockerResult {
 	stdcopy.StdCopy(os.Stdout, os.Stderr, out)
 
 	return DockerResult{ContainerID: resp.ID, Action: "start", Result: "success"}
+}
+
+func (d *Docker) Inspect(containerID string) DockerInspectResponse {
+	dc, _ := client.NewClientWithOpts(client.FromEnv)
+	ctx := context.Background()
+	resp, err := dc.ContainerInspect(ctx, containerID)
+
+	if err != nil {
+		log.Printf("Error inspecting container: %s\n", err.Error())
+		return DockerInspectResponse{Error: err}
+	}
+
+	return DockerInspectResponse{Container: &resp}
 }

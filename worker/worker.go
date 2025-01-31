@@ -143,3 +143,49 @@ func (w *Worker) RunTasks() {
 
 	}
 }
+
+func (w *Worker) InspectTask(t task.Task) task.DockerInspectResponse {
+	config := task.NewConfig(&t)
+	d := task.NewDocker(config)
+	return d.Inspect(t.ContainerID)
+}
+
+func (w *Worker) UpdateTasksForever() {
+	for {
+		log.Println("Checking status of tasks")
+		w.UpdateTasks()
+		log.Println("Tasks update completed")
+		log.Println("Sleeping for 10 seconds")
+		time.Sleep(10 * time.Second)
+	}
+}
+
+func (w *Worker) UpdateTasks() {
+	// for each task in the worker's datastore
+	// 1. call InspectTask method
+	// 2. verify if task is in running state
+	// 3. if task is not in running state or not running at all, set state to failed
+
+	for id, t := range w.Db {
+		if t.State == task.Running {
+			resp := w.InspectTask(*t)
+
+			if resp.Error != nil {
+				fmt.Printf("Error: %v\n", resp.Error)
+			}
+
+			if resp.Container == nil {
+				log.Printf("No container for running task %s\n", id)
+				w.Db[id].State = task.Failed
+			}
+
+			if resp.Container.State.Status == "exited" {
+				log.Printf("Container for task %s in non-running state %s\n", id, resp.Container.State.Status)
+				w.Db[id].State = task.Failed
+			}
+
+			//task is running, update exposed ports
+			w.Db[id].HostPorts = resp.Container.NetworkSettings.NetworkSettingsBase.Ports
+		}
+	}
+}

@@ -150,17 +150,17 @@ func (w *Worker) InspectTask(t task.Task) task.DockerInspectResponse {
 	return d.Inspect(t.ContainerID)
 }
 
-func (w *Worker) UpdateTasksForever() {
+func (w *Worker) UpdateTasks() {
 	for {
 		log.Println("Checking status of tasks")
-		w.UpdateTasks()
+		w.updateTasks()
 		log.Println("Tasks update completed")
 		log.Println("Sleeping for 10 seconds")
 		time.Sleep(10 * time.Second)
 	}
 }
 
-func (w *Worker) UpdateTasks() {
+func (w *Worker) updateTasks() {
 	// for each task in the worker's datastore
 	// 1. call InspectTask method
 	// 2. verify if task is in running state

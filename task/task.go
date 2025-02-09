@@ -26,7 +26,6 @@ type Task struct {
 	Disk          int64
 	Cpu           float64
 	ExposedPorts  nat.PortSet
-	HostPorts     nat.PortMap
 	PortBindings  map[string]string
 	RestartPolicy string
 	StartTime     time.Time
@@ -48,6 +47,7 @@ type Config struct {
 	AttachStdout  bool
 	AttachStderr  bool
 	ExposedPorts  nat.PortSet
+	HostPorts     map[string]string
 	Cmd           []string
 	Image         string
 	Cpu           float64
@@ -72,6 +72,7 @@ func NewConfig(t *Task) *Config {
 	return &Config{
 		Name:          t.Name,
 		ExposedPorts:  t.ExposedPorts,
+		HostPorts:     t.PortBindings,
 		Image:         t.Image,
 		Cpu:           t.Cpu,
 		Memory:        t.Memory,

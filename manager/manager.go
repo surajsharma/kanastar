@@ -204,6 +204,7 @@ func (m *Manager) updateTasks() {
 			m.TaskDb[t.ID].StartTime = t.StartTime
 			m.TaskDb[t.ID].FinishTime = t.FinishTime
 			m.TaskDb[t.ID].ContainerID = t.ContainerID
+			m.TaskDb[t.ID].ExposedPorts = t.ExposedPorts
 		}
 
 	}
@@ -298,6 +299,7 @@ func (m *Manager) checkHealthTask(t task.Task) error {
 	worker := strings.Split(w, ":")
 
 	hostPort := getHostPort(t.HostPorts)
+
 	if hostPort == nil {
 		log.Printf("Have not collected task %s host port yet. Skipping.\n", t.ID)
 		return nil

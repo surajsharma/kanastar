@@ -11,3 +11,13 @@ type Node struct {
 	Role            string
 	TaskCount       int
 }
+
+func NewNode(role string, nApi string, name string) *Node {
+	newNode := Node{}
+
+	newNode.Name = name
+	newNode.Ip = nApi
+	newNode.Role = role
+
+	return &newNode
+}

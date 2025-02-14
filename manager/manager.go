@@ -13,6 +13,8 @@ import (
 	"github.com/docker/go-connections/nat"
 	"github.com/golang-collections/collections/queue"
 	"github.com/google/uuid"
+	"github.com/surajsharma/kanastar/node"
+	"github.com/surajsharma/kanastar/scheduler"
 	"github.com/surajsharma/kanastar/task"
 	"github.com/surajsharma/kanastar/worker"
 )
@@ -25,6 +27,8 @@ type Manager struct {
 	WorkerTaskMap map[string][]uuid.UUID
 	TaskWorkerMap map[uuid.UUID]string
 	LastWorker    int
+	WorkerNodes   []*node.Node
+	Scheduler     scheduler.Scheduler
 }
 
 func (m *Manager) ProcessTasks() {
@@ -46,12 +50,30 @@ func (m *Manager) UpdateTasks() {
 	}
 }
 
-func New(workers []string) *Manager {
+func New(workers []string, schedulerType string) *Manager {
 	taskDb := make(map[uuid.UUID]*task.Task)
 	eventDb := make(map[uuid.UUID]*task.TaskEvent)
 
 	workerTaskMap := make(map[string][]uuid.UUID)
 	taskWorkerMap := make(map[uuid.UUID]string)
+
+	var nodes []*node.Node
+
+	for worker := range workers {
+		workerTaskMap[workers[worker]] = []uuid.UUID{}
+		nAPI := fmt.Sprintf("http://%v", workers[worker])
+		n := node.NewNode(workers[worker], nAPI, "worker")
+		nodes = append(nodes, n)
+	}
+
+	var s scheduler.Scheduler
+
+	switch schedulerType {
+	case "roundrobin":
+		s = &scheduler.RoundRobin{Name: "roundrobin"}
+	default:
+		s = &scheduler.RoundRobin{Name: "roundrobin"}
+	}
 
 	return &Manager{
 		Pending:       *queue.New(),
@@ -60,21 +82,23 @@ func New(workers []string) *Manager {
 		EventDb:       eventDb,
 		WorkerTaskMap: workerTaskMap,
 		TaskWorkerMap: taskWorkerMap,
+		WorkerNodes:   nodes,
+		Scheduler:     s,
 	}
 }
 
-func (m *Manager) SelectWorker() string {
-	var newWorker int
+func (m *Manager) SelectWorker(t task.Task) (*node.Node, error) {
+	candidates := m.Scheduler.SelectCandidateNodes(t, m.WorkerNodes)
 
-	if m.LastWorker+1 < len(m.Workers) {
-		newWorker = m.LastWorker + 1
-		m.LastWorker++
-	} else {
-		newWorker = 0
-		m.LastWorker = 0
+	if candidates == nil {
+		msg := fmt.Sprintf("No available candidates match for task %v\n", t.ID)
+		err := errors.New(msg)
+		return nil, err
 	}
 
-	return m.Workers[newWorker]
+	scores := m.Scheduler.Score(t, candidates)
+	selectedNode := m.Scheduler.Pick(scores, candidates)
+	return selectedNode, nil
 }
 
 func (m *Manager) SendWork() {

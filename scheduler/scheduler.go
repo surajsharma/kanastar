@@ -8,7 +8,7 @@ import (
 type Scheduler interface {
 	SelectCandidateNodes(t task.Task, nodes []*node.Node) []*node.Node
 	Score(t task.Task, nodes []*node.Node) map[string]float64
-	Pick(scores map[string]float64, candidates []*node.Node)
+	Pick(scores map[string]float64, candidates []*node.Node) *node.Node
 }
 
 type RoundRobin struct {
@@ -16,7 +16,7 @@ type RoundRobin struct {
 	LastWorker int
 }
 
-func (r *RoundRobin) SelectCandidateNotes(t task.Task, nodes []*node.Node) []*node.Node {
+func (r *RoundRobin) SelectCandidateNodes(t task.Task, nodes []*node.Node) []*node.Node {
 	return nodes
 }
 

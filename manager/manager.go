@@ -97,23 +97,34 @@ func (m *Manager) SelectWorker(t task.Task) (*node.Node, error) {
 	}
 
 	scores := m.Scheduler.Score(t, candidates)
+
+	if scores == nil {
+		return nil, fmt.Errorf("no scores returned to task %v", t)
+	}
+
 	selectedNode := m.Scheduler.Pick(scores, candidates)
 	return selectedNode, nil
 }
 
 func (m *Manager) SendWork() {
 	if m.Pending.Len() > 0 {
-		w := m.SelectWorker()
 
 		e := m.Pending.Dequeue()
 		te := e.(task.TaskEvent)
 
-		t := te.Task
-		log.Printf("Pulled %v off pending queue\n", t)
-
 		m.EventDb[te.ID] = &te
-		m.WorkerTaskMap[w] = append(m.WorkerTaskMap[w], te.Task.ID)
-		m.TaskWorkerMap[t.ID] = w
+
+		log.Printf("Pulled %v off pending queue\n", te)
+		t := te.Task
+
+		w, err := m.SelectWorker(t)
+
+		if err != nil {
+			log.Printf("error selecting worker for task %s : %v", t.ID, err)
+		}
+
+		m.WorkerTaskMap[w.Name] = append(m.WorkerTaskMap[w.Name], te.Task.ID)
+		m.TaskWorkerMap[t.ID] = w.Name
 
 		t.State = task.Scheduled
 		m.TaskDb[t.ID] = &t
@@ -124,7 +135,7 @@ func (m *Manager) SendWork() {
 			log.Printf("Unable to marshal task object: %v\n", t)
 		}
 
-		url := fmt.Sprintf("http://%s/tasks", w)
+		url := fmt.Sprintf("http://%s/tasks", w.Name)
 
 		resp, err := http.Post(url, "application/json", bytes.NewBuffer(data))
 
@@ -296,6 +307,32 @@ func (m *Manager) restartTask(t *task.Task) {
 	}
 
 	log.Printf("%#v\n", t)
+
+}
+
+func (m *Manager) stopTask(worker string, taskID string) {
+	client := &http.Client{}
+	url := fmt.Sprintf("http://%s/tasks/%s", worker, taskID)
+	req, err := http.NewRequest("DELETE", url, nil)
+
+	if err != nil {
+		log.Printf("error creating request to delete task %s: %v", taskID, err)
+		return
+	}
+
+	resp, err := client.Do(req)
+
+	if err != nil {
+		log.Printf("error connecting to worker at %s : %v", url, err)
+		return
+	}
+
+	if resp.StatusCode != http.StatusNoContent {
+		log.Printf("error connecting sending request: %v", err)
+		return
+	}
+
+	log.Printf("task %s has been scheduled to be stopped", taskID)
 
 }
 

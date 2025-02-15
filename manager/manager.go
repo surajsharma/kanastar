@@ -115,8 +115,22 @@ func (m *Manager) SendWork() {
 		m.EventDb[te.ID] = &te
 
 		log.Printf("Pulled %v off pending queue\n", te)
-		t := te.Task
 
+		taskWorker, ok := m.TaskWorkerMap[te.Task.ID]
+
+		if ok {
+			persistedTask := m.TaskDb[te.Task.ID]
+
+			if te.State == task.Completed && task.ValidStateTransitions(persistedTask.State, te.State) {
+				m.stopTask(taskWorker, te.Task.ID.String())
+				return
+			}
+
+			log.Printf("invalid request: existing task %s is in state %v and cannot transition to the completed state", persistedTask.ID.String(), persistedTask.State)
+			return
+		}
+
+		t := te.Task
 		w, err := m.SelectWorker(t)
 
 		if err != nil {
@@ -239,7 +253,7 @@ func (m *Manager) updateTasks() {
 			m.TaskDb[t.ID].StartTime = t.StartTime
 			m.TaskDb[t.ID].FinishTime = t.FinishTime
 			m.TaskDb[t.ID].ContainerID = t.ContainerID
-			m.TaskDb[t.ID].ExposedPorts = t.ExposedPorts
+			m.TaskDb[t.ID].HostPorts = t.HostPorts
 		}
 
 	}

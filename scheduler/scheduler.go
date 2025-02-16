@@ -30,14 +30,56 @@ type Epvm struct {
 	Name string
 }
 
-func (e *Epvm) SelectCandidateNodes(t task.Task, nodes []*node.Node) []*node.Node {
-	var candidates []*node.Node
-	for node := range nodes {
-		if checkDisk(t, nodes[node].Disk-nodes[node].DiskAllocated) {
-			candidates = append(candidates, nodes[node])
+type Greedy struct {
+	Name string
+}
+
+func (g *Greedy) SelectCandidateNodes(t task.Task, nodes []*node.Node) []*node.Node {
+
+	return selectCandidateNodes(t, nodes)
+}
+
+func (g *Greedy) Score(t task.Task, nodes []*node.Node) map[string]float64 {
+	nodeScores := make(map[string]float64)
+
+	for _, node := range nodes {
+		cpuUsage, err := calculateCpuUsage(node)
+
+		if err != nil {
+			log.Printf("[scheduler] error calculating CPU usage for node %s, skipping: %v\n", node.Name, err)
+			continue
+		}
+
+		cpuLoad := calculateLoad(float64(*cpuUsage), math.Pow(2, 0.8))
+		nodeScores[node.Name] = cpuLoad
+	}
+
+	return nodeScores
+}
+
+func (g *Greedy) Pick(candidates map[string]float64, nodes []*node.Node) *node.Node {
+	minCpu := 0.00
+	var bestNode *node.Node
+
+	for idx, node := range nodes {
+		if idx == 0 {
+			minCpu = candidates[node.Name]
+			bestNode = node
+			continue
+		}
+
+		if candidates[node.Name] < minCpu {
+			minCpu = candidates[node.Name]
+			bestNode = node
 		}
 	}
-	return candidates
+
+	return bestNode
+}
+
+func (e *Epvm) SelectCandidateNodes(t task.Task, nodes []*node.Node) []*node.Node {
+
+	return selectCandidateNodes(t, nodes)
 }
 
 func (e *Epvm) Score(t task.Task, nodes []*node.Node) map[string]float64 {
@@ -128,6 +170,16 @@ func (r *RoundRobin) Pick(scores map[string]float64, candidates []*node.Node) *n
 	}
 
 	return bestNode
+}
+
+func selectCandidateNodes(t task.Task, nodes []*node.Node) []*node.Node {
+	var candidates []*node.Node
+	for node := range nodes {
+		if checkDisk(t, nodes[node].Disk-nodes[node].DiskAllocated) {
+			candidates = append(candidates, nodes[node])
+		}
+	}
+	return candidates
 }
 
 func checkDisk(t task.Task, diskAvailable int64) bool {

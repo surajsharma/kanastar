@@ -104,7 +104,7 @@ func (e *EventStore) Put(key string, value interface{}) error {
 
 		err = b.Put([]byte(key), buf)
 		if err != nil {
-			log.Printf("unable to save item %s", key)
+			log.Printf("[bolt] unable to save item %s", key)
 			return err
 		}
 		return nil
@@ -156,7 +156,7 @@ func (e *EventStore) Get(key string) (interface{}, error) {
 		b := tx.Bucket([]byte(e.Bucket))
 		t := b.Get([]byte(key))
 		if t == nil {
-			return fmt.Errorf("event %v not found", key)
+			return fmt.Errorf("[bolt] event %v not found", key)
 		}
 		err := json.Unmarshal(t, &event)
 		if err != nil {
@@ -189,14 +189,13 @@ func (t *TaskStore) Get(key string) (interface{}, error) {
 		return nil, err
 	}
 	return &task, nil
-
 }
 
 func (i *InMemoryTaskStore) Get(key string) (interface{}, error) {
 	t, ok := i.Db[key]
 
 	if !ok {
-		return nil, fmt.Errorf("[task store] task with key %s does not exist", key)
+		return nil, fmt.Errorf("[store] task with key %s does not exist", key)
 	}
 
 	return t, nil
@@ -206,7 +205,7 @@ func (i *InMemoryTaskEventStore) Get(key string) (interface{}, error) {
 	te, ok := i.Db[key]
 
 	if !ok {
-		return nil, fmt.Errorf("[event store] task with key %s does not exist", key)
+		return nil, fmt.Errorf("[store] task with key %s does not exist", key)
 	}
 
 	return te, nil

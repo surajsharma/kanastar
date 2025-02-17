@@ -82,11 +82,11 @@ func New(workers []string, schedulerType string, dbType string) *Manager {
 	}
 
 	if errts != nil {
-		log.Fatalf("unable to create task store: %v", errts)
+		log.Fatalf("[manager] unable to create task store: \n%v", errts)
 	}
 
 	if erres != nil {
-		log.Fatalf("unable to create task event store: %v", erres)
+		log.Fatalf("[manager] unable to create task event store: \n%v", erres)
 	}
 
 	m.TaskDb = ts
@@ -169,7 +169,7 @@ func (m *Manager) updateTasks() {
 
 			taskPersisted, ok := result.(*task.Task)
 			if !ok {
-				log.Printf("[manager] scannot convert result %v to task.Task type\n", result)
+				log.Printf("[manager] cannot convert result %v to task.Task type\n", result)
 				continue
 			}
 

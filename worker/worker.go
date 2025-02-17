@@ -208,24 +208,24 @@ func (w *Worker) updateTasks() {
 	// 3. if task is not in running state, or not running at all, mark task as `failed`
 	tasks, err := w.Db.List()
 	if err != nil {
-		log.Printf("error getting list of tasks: %v\n", err)
+		log.Printf("[worker] error getting list of tasks: %v\n", err)
 		return
 	}
 	for _, t := range tasks.([]*task.Task) {
 		if t.State == task.Running {
 			resp := w.InspectTask(*t)
 			if resp.Error != nil {
-				fmt.Printf("ERROR: %v\n", resp.Error)
+				fmt.Printf("[worker] error inspecting task %v\n", resp.Error)
 			}
 
 			if resp.Container == nil {
-				log.Printf("No container for running task %s\n", t.ID)
+				log.Printf("[worker] no container for running task %s\n", t.ID)
 				t.State = task.Failed
 				w.Db.Put(t.ID.String(), t)
 			}
 
 			if resp.Container.State.Status == "exited" {
-				log.Printf("Container for task %s in non-running state %s\n", t.ID, resp.Container.State.Status)
+				log.Printf("[worker] container for task %s in non-running state %s\n", t.ID, resp.Container.State.Status)
 				t.State = task.Failed
 				w.Db.Put(t.ID.String(), t)
 			}

@@ -19,14 +19,12 @@ func main() {
 
 	fmt.Println("⏳ Starting worker...")
 
-	w1 := worker.New("w1", "memory")
-	w2 := worker.New("w2", "memory")
-	w3 := worker.New("w3", "memory")
+	w1 := worker.New("w1", "persistent")
+	w2 := worker.New("w2", "persistent")
+	w3 := worker.New("w3", "persistent")
 
 	wapi1 := worker.Api{Address: whost, Port: wport, Worker: w1}
-
 	wapi2 := worker.Api{Address: whost, Port: wport + 1, Worker: w2}
-
 	wapi3 := worker.Api{Address: whost, Port: wport + 2, Worker: w3}
 
 	go w1.RunTasks()

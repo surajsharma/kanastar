@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/surajsharma/kanastar/node"
 	"github.com/surajsharma/kanastar/scheduler"
+	"github.com/surajsharma/kanastar/store"
 	"github.com/surajsharma/kanastar/task"
 	"github.com/surajsharma/kanastar/utils"
 	"github.com/surajsharma/kanastar/worker"
@@ -22,8 +23,8 @@ import (
 
 type Manager struct {
 	Pending       queue.Queue
-	TaskDb        map[uuid.UUID]*task.Task
-	EventDb       map[uuid.UUID]*task.TaskEvent
+	TaskDb        store.Store
+	EventDb       store.Store
 	Workers       []string
 	WorkerTaskMap map[string][]uuid.UUID
 	TaskWorkerMap map[uuid.UUID]string
@@ -32,9 +33,7 @@ type Manager struct {
 	Scheduler     scheduler.Scheduler
 }
 
-func New(workers []string, schedulerType string) *Manager {
-	taskDb := make(map[uuid.UUID]*task.Task)
-	eventDb := make(map[uuid.UUID]*task.TaskEvent)
+func New(workers []string, schedulerType string, dbType string) *Manager {
 
 	workerTaskMap := make(map[string][]uuid.UUID)
 	taskWorkerMap := make(map[uuid.UUID]string)
@@ -60,16 +59,28 @@ func New(workers []string, schedulerType string) *Manager {
 		s = &scheduler.RoundRobin{Name: "epvm"}
 	}
 
-	return &Manager{
+	m := Manager{
 		Pending:       *queue.New(),
 		Workers:       workers,
-		TaskDb:        taskDb,
-		EventDb:       eventDb,
 		WorkerTaskMap: workerTaskMap,
 		TaskWorkerMap: taskWorkerMap,
 		WorkerNodes:   nodes,
 		Scheduler:     s,
 	}
+
+	var ts store.Store
+	var es store.Store
+
+	switch dbType {
+	case "memory":
+		ts = store.NewInMemoryTaskStore()
+		es = store.NewInMemoryTaskEventStore()
+	}
+
+	m.TaskDb = ts
+	m.EventDb = es
+
+	return &m
 }
 
 func (m *Manager) SelectWorker(t task.Task) (*node.Node, error) {
@@ -138,21 +149,28 @@ func (m *Manager) updateTasks() {
 		for _, t := range tasks {
 			log.Printf("[manager] attempting to update task %v\n", t.ID)
 
-			_, ok := m.TaskDb[t.ID]
+			result, err := m.TaskDb.Get(t.ID.String())
+			if err != nil {
+				log.Printf("[manager] could not get task %s with error %s\n", t.ID.String(), err)
+				continue
+			}
 
+			taskPersisted, ok := result.(*task.Task)
 			if !ok {
-				log.Printf("[manager] task with ID %s not found", t.ID)
-				return
+				log.Printf("[manager] scannot convert result %v to task.Task type\n", result)
+				continue
 			}
 
-			if m.TaskDb[t.ID].State != t.State {
-				m.TaskDb[t.ID].State = t.State
+			if taskPersisted.State != t.State {
+				taskPersisted.State = t.State
 			}
 
-			m.TaskDb[t.ID].StartTime = t.StartTime
-			m.TaskDb[t.ID].FinishTime = t.FinishTime
-			m.TaskDb[t.ID].ContainerID = t.ContainerID
-			m.TaskDb[t.ID].HostPorts = t.HostPorts
+			taskPersisted.StartTime = t.StartTime
+			taskPersisted.FinishTime = t.FinishTime
+			taskPersisted.ContainerID = t.ContainerID
+			taskPersisted.HostPorts = t.HostPorts
+
+			m.TaskDb.Put(taskPersisted.ID.String(), taskPersisted)
 		}
 
 	}
@@ -164,7 +182,11 @@ func (m *Manager) SendWork() {
 		e := m.Pending.Dequeue()
 		te := e.(task.TaskEvent)
 
-		m.EventDb[te.ID] = &te
+		err := m.EventDb.Put(te.ID.String(), &te)
+		if err != nil {
+			log.Printf("[manager]error attempting to store task event %s: %s\n", te.ID.String(), err)
+		}
+
 		log.Printf("[manager] pulled %v off pending queue\n", te)
 
 		t := te.Task
@@ -179,23 +201,36 @@ func (m *Manager) SendWork() {
 		_, ok := m.TaskWorkerMap[te.Task.ID]
 
 		if ok {
-			persistedTask := m.TaskDb[te.Task.ID]
-			if te.State == task.Completed {
+
+			result, err := m.TaskDb.Get(te.Task.ID.String())
+
+			if err != nil {
+				log.Printf("[manager] unable to schedule task %s", err)
+				return
+			}
+
+			persistedTask, ok := result.(*task.Task)
+
+			if !ok {
+				log.Printf("[manager] unable to convert task to *task.Task type\n")
+				return
+			}
+
+			if te.State == task.Completed && task.ValidStateTransitions(persistedTask.State, te.State) {
 				m.stopTask(w, te.Task.ID.String())
 				return
 			}
 
-			if !task.ValidStateTransitions(persistedTask.State, te.State) {
-				log.Printf("[manager] invalid request: existing task %s is in state %v and cannot transition to the completed state", persistedTask.ID.String(), persistedTask.State)
-				return
-			}
+			log.Printf("[manager] invalid request: existing task %s is in state %v and cannot transition to the completed state", persistedTask.ID.String(), persistedTask.State)
+			return
+
 		}
 
 		m.WorkerTaskMap[w.Name] = append(m.WorkerTaskMap[w.Name], te.Task.ID)
 		m.TaskWorkerMap[t.ID] = w.Name
 
 		t.State = task.Scheduled
-		m.TaskDb[t.ID] = &t
+		m.TaskDb.Put(t.ID.String(), &t)
 
 		data, err := json.Marshal(te)
 		if err != nil {
@@ -242,13 +277,14 @@ func (m *Manager) AddTask(te task.TaskEvent) {
 }
 
 func (m *Manager) GetTasks() []*task.Task {
-	tasks := []*task.Task{}
+	taskList, err := m.TaskDb.List()
 
-	for _, t := range m.TaskDb {
-		tasks = append(tasks, t)
+	if err != nil {
+		log.Printf("[manager] error getting list of tasks: %v\n", err)
+		return nil
 	}
 
-	return tasks
+	return taskList.([]*task.Task)
 
 }
 
@@ -287,7 +323,7 @@ func (m *Manager) restartTask(t *task.Task) {
 	t.RestartCount++
 
 	//we need to overwrite the existing task to ensure it has current state
-	m.TaskDb[t.ID] = t
+	m.TaskDb.Put(t.ID.String(), t)
 
 	te := task.TaskEvent{
 		ID:        uuid.New(),

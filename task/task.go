@@ -116,7 +116,11 @@ func (d *Docker) Stop(id string) DockerResult {
 	remove_err := d.Client.ContainerRemove(ctx, id, container.RemoveOptions{
 		RemoveVolumes: true,
 		RemoveLinks:   false,
-		//The RemoveLinks option is typically used when you want to remove links between containers, but in most modern Docker applications, links are deprecated in favor of networks. If you're not specifically using container links, you probably don't need this option. WARNING: setting this to true will cause remove_err to say "Conflict, cannot remove the default link name of the container"
+		/* The RemoveLinks option is typically used when you want to remove links between containers,
+		but in most modern Docker applications, links are deprecated in favor of networks.
+		If you're not specifically using container links, you probably don't need this option.
+		WARNING: setting this to true will cause remove_err to result in
+		"Conflict, cannot remove the default link name of the container" */
 		Force: false,
 	})
 

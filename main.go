@@ -5,10 +5,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/golang-collections/collections/queue"
-	"github.com/google/uuid"
 	"github.com/surajsharma/kanastar/manager"
-	"github.com/surajsharma/kanastar/task"
 	"github.com/surajsharma/kanastar/worker"
 )
 
@@ -22,26 +19,15 @@ func main() {
 
 	fmt.Println("⏳ Starting worker...")
 
-	w1 := worker.Worker{
-		Queue: *queue.New(),
-		Db:    make(map[uuid.UUID]*task.Task),
-	}
+	w1 := worker.New("w1", "memory")
+	w2 := worker.New("w2", "memory")
+	w3 := worker.New("w3", "memory")
 
-	wapi1 := worker.Api{Address: whost, Port: wport, Worker: &w1}
+	wapi1 := worker.Api{Address: whost, Port: wport, Worker: w1}
 
-	w2 := worker.Worker{
-		Queue: *queue.New(),
-		Db:    make(map[uuid.UUID]*task.Task),
-	}
+	wapi2 := worker.Api{Address: whost, Port: wport + 1, Worker: w2}
 
-	wapi2 := worker.Api{Address: whost, Port: wport + 1, Worker: &w2}
-
-	w3 := worker.Worker{
-		Queue: *queue.New(),
-		Db:    make(map[uuid.UUID]*task.Task),
-	}
-
-	wapi3 := worker.Api{Address: whost, Port: wport + 2, Worker: &w3}
+	wapi3 := worker.Api{Address: whost, Port: wport + 2, Worker: w3}
 
 	go w1.RunTasks()
 	go w1.CollectStats()
@@ -66,7 +52,7 @@ func main() {
 		fmt.Sprintf("%s:%d", whost, wport+2),
 	}
 
-	m := manager.New(workers, "greedy")
+	m := manager.New(workers, "epvm", "memory")
 
 	mapi := manager.Api{Address: mhost, Port: mport, Manager: m}
 

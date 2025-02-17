@@ -52,9 +52,9 @@ func (a *Api) StopTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 	tID, _ := uuid.Parse(taskID)
 
-	_, ok := a.Worker.Db[tID]
+	taskToStop, err := a.Worker.Db.Get(tID.String())
 
-	if !ok {
+	if err != nil {
 
 		err := fmt.Sprintf("[worker][api] task not found %v", tID)
 		w.Write([]byte(err))
@@ -62,16 +62,14 @@ func (a *Api) StopTaskHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 	}
 
-	taskToStop := a.Worker.Db[tID]
-
 	// make a copy to not modify the task in datastore
-	taskCopy := *taskToStop
+	taskCopy := *taskToStop.(*task.Task)
 
 	taskCopy.State = task.Completed
 
 	a.Worker.AddTask(taskCopy)
 
-	log.Printf("[worker][api] added task %v to stop container %v\n", taskToStop.ID, taskToStop.ContainerID)
+	log.Printf("[worker][api] added task %v to stop container %v\n", taskCopy.ID.String(), taskCopy.ContainerID)
 	w.WriteHeader(http.StatusNoContent)
 }
 

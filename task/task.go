@@ -92,6 +92,7 @@ func NewDocker(c *Config) *Docker {
 
 	if err != nil {
 		log.Fatalf("[task] error creating docker client, is the daemon running?")
+		return nil
 	}
 
 	return &Docker{

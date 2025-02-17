@@ -1,0 +1,18 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Kanastar",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "./main.go",
+            "env": {
+                "WORKER_PORT": "5556",
+                "MANAGER_HOST": "localhost",
+                "MANAGER_PORT": "5555",
+                "WORKER_HOST": "localhost"
+            }
+        }
+    ]
+}

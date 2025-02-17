@@ -167,20 +167,6 @@ func (m *Manager) SendWork() {
 		m.EventDb[te.ID] = &te
 		log.Printf("[manager] pulled %v off pending queue\n", te)
 
-		taskWorker, ok := m.TaskWorkerMap[te.Task.ID]
-		if ok {
-			persistedTask := m.TaskDb[te.Task.ID]
-			if te.State == task.Completed {
-				m.stopTask(taskWorker, te.Task.ID.String())
-				return
-			}
-
-			if !task.ValidStateTransitions(persistedTask.State, te.State) {
-				log.Printf("[manager] invalid request: existing task %s is in state %v and cannot transition to the completed state", persistedTask.ID.String(), persistedTask.State)
-				return
-			}
-		}
-
 		t := te.Task
 		w, err := m.SelectWorker(t)
 		if err != nil {
@@ -189,6 +175,21 @@ func (m *Manager) SendWork() {
 		}
 
 		log.Printf("[manager] selected worker [%s] for task [%s]", w.Name, t.ID)
+
+		_, ok := m.TaskWorkerMap[te.Task.ID]
+
+		if ok {
+			persistedTask := m.TaskDb[te.Task.ID]
+			if te.State == task.Completed {
+				m.stopTask(w, te.Task.ID.String())
+				return
+			}
+
+			if !task.ValidStateTransitions(persistedTask.State, te.State) {
+				log.Printf("[manager] invalid request: existing task %s is in state %v and cannot transition to the completed state", persistedTask.ID.String(), persistedTask.State)
+				return
+			}
+		}
 
 		m.WorkerTaskMap[w.Name] = append(m.WorkerTaskMap[w.Name], te.Task.ID)
 		m.TaskWorkerMap[t.ID] = w.Name
@@ -341,13 +342,11 @@ func (m *Manager) restartTask(t *task.Task) {
 
 }
 
-func (m *Manager) stopTask(worker string, taskID string) {
-
-	//TODO: also delete from queue
+func (m *Manager) stopTask(worker *node.Node, taskID string) {
 
 	client := &http.Client{}
 
-	url := fmt.Sprintf("http://%s/tasks/%s", worker, taskID)
+	url := fmt.Sprintf("%s/tasks/%s", worker.Api, taskID)
 
 	req, err := http.NewRequest("DELETE", url, nil)
 

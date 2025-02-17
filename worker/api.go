@@ -2,8 +2,10 @@ package worker
 
 import (
 	"fmt"
-	"github.com/go-chi/chi/v5"
+	"log"
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
 )
 
 type ErrResponse struct {
@@ -35,5 +37,6 @@ func (a *Api) initRouter() {
 
 func (a *Api) Start() {
 	a.initRouter()
+	log.Printf("[worker][api] started listening at %s:%d", a.Address, a.Port)
 	http.ListenAndServe(fmt.Sprintf("%s:%d", a.Address, a.Port), a.Router)
 }

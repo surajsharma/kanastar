@@ -16,6 +16,7 @@ import (
 	"github.com/surajsharma/kanastar/node"
 	"github.com/surajsharma/kanastar/scheduler"
 	"github.com/surajsharma/kanastar/task"
+	"github.com/surajsharma/kanastar/utils"
 	"github.com/surajsharma/kanastar/worker"
 )
 
@@ -75,7 +76,7 @@ func (m *Manager) SelectWorker(t task.Task) (*node.Node, error) {
 	candidates := m.Scheduler.SelectCandidateNodes(t, m.WorkerNodes)
 
 	if candidates == nil {
-		msg := fmt.Sprintf("no available candidates match for task %v\n", t.ID)
+		msg := fmt.Sprintf("[manager] no available candidates match for task %v\n", t.ID)
 		err := errors.New(msg)
 		return nil, err
 	}
@@ -83,7 +84,7 @@ func (m *Manager) SelectWorker(t task.Task) (*node.Node, error) {
 	scores := m.Scheduler.Score(t, candidates)
 
 	if scores == nil {
-		return nil, fmt.Errorf("no scores returned to task %v", t)
+		return nil, fmt.Errorf("[manager] no scores returned to task %v", t)
 	}
 
 	selectedNode := m.Scheduler.Pick(scores, candidates)
@@ -92,20 +93,18 @@ func (m *Manager) SelectWorker(t task.Task) (*node.Node, error) {
 
 func (m *Manager) ProcessTasks() {
 	for {
-		log.Println("processing any tasks in the queue")
+		log.Println("[manager] processing any tasks in the queue")
 		m.SendWork()
-		log.Println("sleeping for 10 seconds...")
-		time.Sleep(10 * time.Second)
+		utils.Sleep("manager", 10)
 	}
 }
 
 func (m *Manager) UpdateTasks() {
 	for {
-		log.Println("checking for task updates from worker")
+		log.Println("[manager] checking for task updates from worker")
 		m.updateTasks()
-		log.Println("task updates completed")
-		log.Println("sleeping for 10 seconds...")
-		time.Sleep(10 * time.Second)
+		log.Println("[manager] task updates completed")
+		utils.Sleep("manager", 10)
 	}
 }
 
@@ -257,8 +256,7 @@ func (m *Manager) DoHealthChecks() {
 		log.Printf("[manager] performing task health check..")
 		m.doHealthChecks()
 		log.Printf("[manager] task health checks completed")
-		log.Printf("[manager] sleeping for 60 seconds...")
-		time.Sleep(60 * time.Second)
+		utils.Sleep("manager", 60)
 	}
 }
 
@@ -384,7 +382,7 @@ func (m *Manager) checkHealthTask(t task.Task) error {
 	hostPort := getHostPort(t.HostPorts)
 
 	if hostPort == nil {
-		log.Printf("Have not collected task %s host port yet. Skipping.\n", t.ID)
+		log.Printf("[manager] have not collected task %s host port yet. Skipping.\n", t.ID)
 		return nil
 	}
 

@@ -73,7 +73,7 @@ func GetStats() *Stats {
 func GetMemoryInfo() *linux.MemInfo {
 	memstats, err := linux.ReadMemInfo("/proc/meminfo")
 	if err != nil {
-		log.Printf("Error reading from /proc/meminfo")
+		log.Printf("[stats] error reading from /proc/meminfo")
 		return &linux.MemInfo{}
 	}
 	return memstats
@@ -82,7 +82,7 @@ func GetMemoryInfo() *linux.MemInfo {
 func GetDiskInfo() *linux.Disk {
 	diskstats, err := linux.ReadDisk("/")
 	if err != nil {
-		log.Printf("Error reading from /")
+		log.Printf("[stats] error reading from /")
 		return &linux.Disk{}
 	}
 	return diskstats
@@ -91,7 +91,7 @@ func GetDiskInfo() *linux.Disk {
 func GetCpuStats() *linux.CPUStat {
 	stats, err := linux.ReadStat("/proc/stat")
 	if err != nil {
-		log.Printf("Error reading from /proc/stat")
+		log.Printf("[stats] error reading from /proc/stat")
 		return &linux.CPUStat{}
 	}
 	return &stats.CPUStatAll
@@ -100,7 +100,7 @@ func GetCpuStats() *linux.CPUStat {
 func GetLoadAvg() *linux.LoadAvg {
 	loadavg, err := linux.ReadLoadAvg("/proc/loadavg")
 	if err != nil {
-		log.Printf("Error reading from /proc/loadavg")
+		log.Printf("[stats] error reading from /proc/loadavg")
 		return &linux.LoadAvg{}
 	}
 	return loadavg

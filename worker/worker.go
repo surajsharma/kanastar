@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/surajsharma/kanastar/stats"
 	"github.com/surajsharma/kanastar/task"
+	"github.com/surajsharma/kanastar/utils"
 )
 
 type Worker struct {
@@ -32,10 +33,11 @@ func (w *Worker) GetTasks() []*task.Task {
 
 func (w *Worker) CollectStats() {
 	for {
-		log.Println("Collecting stats...")
+		log.Println("[worker] collecting stats...")
 		w.Stats = stats.GetStats()
 		w.Stats.TaskCount = w.TaskCount
-		time.Sleep(15 * time.Second)
+		utils.Sleep("worker", 15)
+
 	}
 }
 
@@ -49,7 +51,7 @@ func (w *Worker) StartTask(t task.Task) task.DockerResult {
 	result := d.Run()
 
 	if result.Error != nil {
-		log.Printf("Error running task %v: %v\n", t.ID, result.Error)
+		log.Printf("[worker] error running task %v: %v\n", t.ID, result.Error)
 		t.State = task.Failed
 		w.Db[t.ID] = &t
 		return result
@@ -61,7 +63,7 @@ func (w *Worker) StartTask(t task.Task) task.DockerResult {
 
 	w.Db[t.ID] = &t
 
-	log.Printf("Started task %v\n", t.ContainerID)
+	log.Printf("[worker] started task %v\n", t.ContainerID)
 
 	return result
 }
@@ -73,7 +75,7 @@ func (w *Worker) StopTask(t task.Task) task.DockerResult {
 	result := d.Stop(t.ContainerID)
 
 	if result.Error != nil {
-		log.Printf("Error stopping container %v: %v\n", t, result.Error)
+		log.Printf("[worker] error stopping container %v: %v\n", t, result.Error)
 	}
 
 	t.FinishTime = time.Now().UTC()
@@ -81,7 +83,7 @@ func (w *Worker) StopTask(t task.Task) task.DockerResult {
 
 	w.Db[t.ID] = &t
 
-	log.Printf("Stopped and removed container %v for task %v\n", t.ContainerID, t.ID)
+	log.Printf("[worker] stopped and removed container %v for task %v\n", t.ContainerID, t.ID)
 
 	return result
 }
@@ -95,7 +97,7 @@ func (w *Worker) runTask() task.DockerResult {
 	t := w.Queue.Dequeue()
 
 	if t == nil {
-		log.Println("No tasks in queue")
+		log.Println("[worker] no tasks in queue")
 		return task.DockerResult{Error: nil}
 	}
 
@@ -117,10 +119,10 @@ func (w *Worker) runTask() task.DockerResult {
 		case task.Completed:
 			result = w.StopTask(taskQueued)
 		default:
-			result.Error = errors.New("invalid operation")
+			result.Error = errors.New("[worker] invalid operation")
 		}
 	} else {
-		err := fmt.Errorf("invalid transition from %v to %v", taskPersisted.State, taskQueued.State)
+		err := fmt.Errorf("[worker] invalid transition from %v to %v", taskPersisted.State, taskQueued.State)
 		result.Error = err
 		return result
 	}
@@ -133,14 +135,13 @@ func (w *Worker) RunTasks() {
 		if w.Queue.Len() != 0 {
 			result := w.runTask()
 			if result.Error != nil {
-				log.Printf("Error running task: %v\n", result.Error)
+				log.Printf("[worker] error running task: %v\n", result.Error)
 			}
 		} else {
-			log.Printf("No tasks to process currently.\n")
+			log.Printf("[worker] no tasks to process currently\n")
 		}
 
-		log.Printf("Sleeping for 10 seconds.")
-		time.Sleep(10 * time.Second)
+		utils.Sleep("worker", 10)
 
 	}
 }
@@ -153,11 +154,10 @@ func (w *Worker) InspectTask(t task.Task) task.DockerInspectResponse {
 
 func (w *Worker) UpdateTasks() {
 	for {
-		log.Println("Checking status of tasks")
+		log.Println("[worker] checking status of tasks")
 		w.updateTasks()
-		log.Println("Tasks update completed")
-		log.Println("Sleeping for 10 seconds")
-		time.Sleep(10 * time.Second)
+		log.Println("[worker] tasks update completed")
+		utils.Sleep("worker", 10)
 	}
 }
 
@@ -172,16 +172,16 @@ func (w *Worker) updateTasks() {
 			resp := w.InspectTask(*t)
 
 			if resp.Error != nil {
-				fmt.Printf("Error: %v\n", resp.Error)
+				fmt.Printf("[worker] error inspecting task: %v\n", resp.Error)
 			}
 
 			if resp.Container == nil {
-				log.Printf("No container for running task %s\n", id)
+				log.Printf("[worker] no container for running task %s\n", id)
 				w.Db[id].State = task.Failed
 			}
 
 			if resp.Container.State.Status == "exited" {
-				log.Printf("Container for task %s in non-running state %s\n", id, resp.Container.State.Status)
+				log.Printf("[worker] container for task %s in non-running state %s\n", id, resp.Container.State.Status)
 				w.Db[id].State = task.Failed
 			}
 

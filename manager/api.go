@@ -33,6 +33,6 @@ func (a *Api) initRouter() {
 
 func (a *Api) Start() {
 	a.initRouter()
-	log.Printf("[manager][api] manager api started listening at %s:%d", a.Address, a.Port)
+	log.Printf("[manager][api] started listening at %s:%d", a.Address, a.Port)
 	http.ListenAndServe(fmt.Sprintf("%s:%d", a.Address, a.Port), a.Router)
 }

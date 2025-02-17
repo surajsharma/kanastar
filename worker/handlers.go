@@ -3,12 +3,13 @@ package worker
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/surajsharma/kanastar/task"
 	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+	"github.com/surajsharma/kanastar/task"
+	"github.com/surajsharma/kanastar/utils"
 )
 
 func (a *Api) StartTaskHandler(w http.ResponseWriter, r *http.Request) {
@@ -21,7 +22,7 @@ func (a *Api) StartTaskHandler(w http.ResponseWriter, r *http.Request) {
 	err := d.Decode(&te)
 
 	if err != nil {
-		msg := fmt.Sprintf("Error unmarshalling request body: %v\n", err)
+		msg := fmt.Sprintf("[worker][api] error unmarshalling request body: %v\n", err)
 		log.Printf("%s", msg)
 		w.WriteHeader(http.StatusBadRequest)
 
@@ -35,7 +36,7 @@ func (a *Api) StartTaskHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	a.Worker.AddTask(te.Task)
-	log.Printf("Added task %v", te.Task.ID)
+	log.Printf("[worker][api] added task %v", te.Task.ID)
 	w.WriteHeader(http.StatusCreated)
 
 	json.NewEncoder(w).Encode(te.Task)
@@ -45,7 +46,7 @@ func (a *Api) StopTaskHandler(w http.ResponseWriter, r *http.Request) {
 	taskID := chi.URLParam(r, "taskID")
 
 	if taskID == "" {
-		log.Printf("No taskID passed in request.\n")
+		log.Printf("[worker][api] no taskID passed in request.\n")
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
@@ -54,11 +55,11 @@ func (a *Api) StopTaskHandler(w http.ResponseWriter, r *http.Request) {
 	_, ok := a.Worker.Db[tID]
 
 	if !ok {
-		defer handlePanic()
-		w.WriteHeader(http.StatusNotFound)
 
-		err := fmt.Sprintf("Task not found %v", tID)
+		err := fmt.Sprintf("[worker][api] task not found %v", tID)
 		w.Write([]byte(err))
+		defer utils.HandlePanic(err)
+		w.WriteHeader(http.StatusNotFound)
 	}
 
 	taskToStop := a.Worker.Db[tID]
@@ -70,7 +71,7 @@ func (a *Api) StopTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 	a.Worker.AddTask(taskCopy)
 
-	log.Printf("Added task %v to stop container %v\n", taskToStop.ID, taskToStop.ContainerID)
+	log.Printf("[worker][api] added task %v to stop container %v\n", taskToStop.ID, taskToStop.ContainerID)
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -84,10 +85,4 @@ func (a *Api) GetStatsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(a.Worker.Stats)
-}
-
-func handlePanic() {
-	if r := recover(); r != nil {
-		log.Printf("Recovered from panic: %v", r)
-	}
 }

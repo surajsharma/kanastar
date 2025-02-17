@@ -3,10 +3,10 @@ package scheduler
 import (
 	"log"
 	"math"
-	"time"
 
 	"github.com/surajsharma/kanastar/node"
 	"github.com/surajsharma/kanastar/task"
+	"github.com/surajsharma/kanastar/utils"
 )
 
 const (
@@ -199,7 +199,9 @@ func calculateCpuUsage(node *node.Node) (*float64, error) {
 	if err != nil {
 		return nil, err
 	}
-	time.Sleep(3 * time.Second)
+
+	utils.Sleep("scheduler", 3)
+
 	//stat2 := getNodeStats(node)
 	stat2, err := node.GetStats()
 	if err != nil {

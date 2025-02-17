@@ -91,7 +91,7 @@ func NewDocker(c *Config) *Docker {
 	dc, err := client.NewClientWithOpts(client.FromEnv)
 
 	if err != nil {
-		log.Fatalf("Error creating docker client, is the daemon running?")
+		log.Fatalf("[task] error creating docker client, is the daemon running?")
 	}
 
 	return &Docker{
@@ -101,14 +101,14 @@ func NewDocker(c *Config) *Docker {
 }
 
 func (d *Docker) Stop(id string) DockerResult {
-	log.Printf("Attempting to stop container %v", id)
+	log.Printf("[task] attempting to stop container %v", id)
 
 	ctx := context.Background()
 
 	err := d.Client.ContainerStop(ctx, id, container.StopOptions{})
 
 	if err != nil {
-		log.Printf("Error attempting to stop container %v", id)
+		log.Printf("[task] error attempting to stop container %v", id)
 		return DockerResult{Error: err}
 
 	}
@@ -120,7 +120,7 @@ func (d *Docker) Stop(id string) DockerResult {
 	})
 
 	if remove_err != nil {
-		log.Printf("Error attempting to remove container %v", id)
+		log.Printf("[task] error attempting to remove container %v", id)
 		return DockerResult{Error: err}
 
 	}
@@ -135,7 +135,7 @@ func (d *Docker) Run() DockerResult {
 		ctx, d.Config.Image, image.PullOptions{})
 
 	if err != nil {
-		log.Printf("Error pulling image %s: %v\n", d.Config.Image, err)
+		log.Printf("[task] error pulling image %s: %v\n", d.Config.Image, err)
 		return DockerResult{Error: err}
 	}
 
@@ -164,7 +164,7 @@ func (d *Docker) Run() DockerResult {
 		ctx, &cc, &hc, nil, nil, d.Config.Name)
 
 	if create_err != nil {
-		log.Printf("Error creating container using image %s: %v\n", d.Config.Image, create_err)
+		log.Printf("[task] error creating container using image %s: %v\n", d.Config.Image, create_err)
 		return DockerResult{Error: err}
 	}
 
@@ -172,7 +172,7 @@ func (d *Docker) Run() DockerResult {
 		ctx, resp.ID, container.StartOptions{})
 
 	if start_err != nil {
-		log.Printf("Error starting container %s: %v\n", resp.ID, start_err)
+		log.Printf("[task] error starting container %s: %v\n", resp.ID, start_err)
 		return DockerResult{Error: err}
 	}
 
@@ -180,7 +180,7 @@ func (d *Docker) Run() DockerResult {
 		ctx, resp.ID, container.LogsOptions{ShowStdout: true, ShowStderr: true})
 
 	if err != nil {
-		log.Printf("Error getting logs for container %s: %v\n", resp.ID, err)
+		log.Printf("[task] error getting logs for container %s: %v\n", resp.ID, err)
 		return DockerResult{Error: err}
 	}
 
@@ -195,7 +195,7 @@ func (d *Docker) Inspect(containerID string) DockerInspectResponse {
 	resp, err := dc.ContainerInspect(ctx, containerID)
 
 	if err != nil {
-		log.Printf("Error inspecting container: %s\n", err.Error())
+		log.Printf("[task] error inspecting container: %s\n", err.Error())
 		return DockerInspectResponse{Error: err}
 	}
 

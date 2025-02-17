@@ -21,7 +21,7 @@ func (a *Api) StartTaskHandler(w http.ResponseWriter, r *http.Request) {
 	err := d.Decode(&te)
 
 	if err != nil {
-		msg := fmt.Sprintf("Error unmarshalling body: %v\n", err)
+		msg := fmt.Sprintf("[manager][api] error unmarshalling body: %v\n", err)
 		log.Print(msg)
 		w.WriteHeader(http.StatusBadRequest)
 
@@ -35,7 +35,7 @@ func (a *Api) StartTaskHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	a.Manager.AddTask(te)
-	log.Printf("Added task: %v\n", te.Task.ID)
+	log.Printf("[manager][api] added task: %v\n", te.Task.ID)
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(te.Task)
 
@@ -45,20 +45,21 @@ func (a *Api) StopTaskHandler(w http.ResponseWriter, r *http.Request) {
 	taskID := chi.URLParam(r, "taskID")
 
 	if taskID == "" {
-		log.Printf("No TaskID passed in request\n")
+		log.Printf("[manager][api] no taskID passed in request\n")
 		w.WriteHeader(http.StatusBadRequest)
 	}
+
 	tID, _ := uuid.Parse(taskID)
 
 	taskToStop, ok := a.Manager.TaskDb[tID]
 
 	if !ok {
-		log.Printf("Task ID %v not found", tID)
+		log.Printf("[manager][api] task ID %v not found", tID)
 		w.WriteHeader(http.StatusNotFound)
+		return
 	}
 
 	te := task.TaskEvent{
-
 		ID:        uuid.New(),
 		State:     task.Completed,
 		Timestamp: time.Now(),
@@ -72,7 +73,7 @@ func (a *Api) StopTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 	a.Manager.AddTask(te)
 
-	log.Printf("Added task event %v to stop task %v \n", te.ID, taskToStop.ID)
+	log.Printf("[manager][api] added task event %v to stop task %v \n", te.ID, taskToStop.ID)
 	w.WriteHeader(http.StatusNoContent)
 }
 

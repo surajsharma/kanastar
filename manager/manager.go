@@ -344,6 +344,9 @@ func (m *Manager) restartTask(t *task.Task) {
 }
 
 func (m *Manager) stopTask(worker string, taskID string) {
+
+	//TODO: also delete from queue
+
 	client := &http.Client{}
 
 	url := fmt.Sprintf("http://%s/tasks/%s", worker, taskID)

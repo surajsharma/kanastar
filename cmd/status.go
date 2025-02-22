@@ -13,6 +13,7 @@ import (
 	"github.com/docker/go-units"
 	"github.com/spf13/cobra"
 	"github.com/surajsharma/kanastar/task"
+	"github.com/surajsharma/kanastar/utils"
 )
 
 func init() {
@@ -28,6 +29,10 @@ var statusCmd = &cobra.Command{
 	The status command allows a user to get the status of tasks from the Kanastar manager.`,
 
 	Run: func(cmd *cobra.Command, args []string) {
+		if !utils.IsDockerDaemonUp() {
+			return
+		}
+
 		manager, _ := cmd.Flags().GetString("manager")
 
 		url := fmt.Sprintf("http://%s/tasks", manager)

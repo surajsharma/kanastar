@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/cobra"
+	"github.com/surajsharma/kanastar/utils"
 )
 
 func init() {
@@ -33,6 +34,9 @@ var runCmd = &cobra.Command{
 	The run command starts a new task.`,
 
 	Run: func(cmd *cobra.Command, args []string) {
+		if !utils.IsDockerDaemonUp() {
+			return
+		}
 
 		manager, _ := cmd.Flags().GetString("manager")
 		filename, _ := cmd.Flags().GetString("filename")

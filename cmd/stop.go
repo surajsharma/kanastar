@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/spf13/cobra"
+	"github.com/surajsharma/kanastar/utils"
 )
 
 func init() {
@@ -23,6 +24,10 @@ var stopCmd = &cobra.Command{
 	Args: cobra.MinimumNArgs(1),
 
 	Run: func(cmd *cobra.Command, args []string) {
+		if !utils.IsDockerDaemonUp() {
+			return
+		}
+
 		manager, _ := cmd.Flags().GetString("manager")
 		url := fmt.Sprintf("http://%s/tasks/%s", manager, args[0])
 		client := &http.Client{}

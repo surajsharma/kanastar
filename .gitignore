@@ -2,3 +2,4 @@
 vendor/
 *.__debug_bin*
 *.db
+task.json

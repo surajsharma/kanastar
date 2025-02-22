@@ -1,7 +1,11 @@
 ## kanastar
 simple, scalable docker orchestrator written in go.
 
-[![Build and Release](https://github.com/surajsharma/kanastar/actions/workflows/release.yml/badge.svg)](https://github.com/surajsharma/kanastar/actions/workflows/release.yml)
+> [!WARNING]
+> Highly experimental release in active development, not suitable for production yet.
+
+
+[![Build and Release](https://github.com/surajsharma/kanastar/actions/workflows/release.yml/badge.svg)](https://github.com/surajsharma/kanastar/actions/workflows/release.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 
 <img src="./docs/images/kanastar.png" width="250">

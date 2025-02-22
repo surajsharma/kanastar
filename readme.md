@@ -13,7 +13,7 @@ simple, scalable docker orchestrator written in go.
 
 ## Usage
 
-- Currently the following sub commands are available
+- Currently the following subcommands are available:
   - `worker`
   - `manager`
   - `run`

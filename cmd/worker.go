@@ -15,7 +15,8 @@ var workerCmd = &cobra.Command{
 	Short: "Worker command to operate a Kanastar worker node.",
 	Long: `Kanastar worker command.
 
-The worker runs tasks and responds to the manager's requests about task state.`,
+	The worker runs tasks and responds to the manager's requests about task state.`,
+
 	Run: func(cmd *cobra.Command, args []string) {
 		host, _ := cmd.Flags().GetString("host")
 		port, _ := cmd.Flags().GetInt("port")

@@ -25,7 +25,8 @@ var statusCmd = &cobra.Command{
 	Short: "Status command to list tasks.",
 	Long: `Kanastar status command.
 
-The status command allows a user to get the status of tasks from the Kanastar manager.`,
+	The status command allows a user to get the status of tasks from the Kanastar manager.`,
+
 	Run: func(cmd *cobra.Command, args []string) {
 		manager, _ := cmd.Flags().GetString("manager")
 

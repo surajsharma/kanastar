@@ -23,7 +23,8 @@ var nodeCmd = &cobra.Command{
 	Short: "Node command to list nodes.",
 	Long: `Kanastar node command.
 
-The node command allows a user to get the information about the nodes in the cluster.`,
+	The node command allows a user to get the information about the nodes in the cluster.`,
+
 	Run: func(cmd *cobra.Command, args []string) {
 		manager, _ := cmd.Flags().GetString("manager")
 

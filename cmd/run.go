@@ -30,7 +30,8 @@ var runCmd = &cobra.Command{
 	Short: "Run a new task.",
 	Long: `Kanastar run command.
 
-The run command starts a new task.`,
+	The run command starts a new task.`,
+
 	Run: func(cmd *cobra.Command, args []string) {
 
 		manager, _ := cmd.Flags().GetString("manager")

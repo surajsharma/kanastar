@@ -13,14 +13,25 @@ simple, scalable docker orchestrator written in go.
 
 ## Usage
 
-- Currently the following subcommands are available:
-  - `worker`
-  - `manager`
-  - `run`
-  - `status`
-  - `stop`
-  - `node`
-- To learn how to use each type the subcommand name followed by `-h` or `--help` for details
-  - Example: `go run main.go worker -h`
+```
+Kanastar is a dead simple docker orchestrator designed with spot VMs in mind
+
+Usage:
+  kanastar [command]
+
+Available Commands:
+  help        Help about any command
+  manager     Manager command to operate a Kanastar manager node.
+  node        Node command to list nodes.
+  run         Run a new task.
+  status      Status command to list tasks.
+  stop        Stop a running task.
+  worker      Worker command to operate a Kanastar worker node.
+
+Flags:
+  -h, --help   help for kanastar
+
+Use "kanastar [command] --help" for more information about a command.
+```
 
 [changelog](./CHANGELOG)

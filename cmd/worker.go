@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
+	"github.com/surajsharma/kanastar/utils"
 	"github.com/surajsharma/kanastar/worker"
 )
 
@@ -18,6 +19,11 @@ var workerCmd = &cobra.Command{
 	The worker runs tasks and responds to the manager's requests about task state.`,
 
 	Run: func(cmd *cobra.Command, args []string) {
+
+		if !utils.IsDockerDaemonUp() {
+			return
+		}
+
 		host, _ := cmd.Flags().GetString("host")
 		port, _ := cmd.Flags().GetInt("port")
 		name, _ := cmd.Flags().GetString("name")

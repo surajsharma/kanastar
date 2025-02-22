@@ -11,6 +11,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/surajsharma/kanastar/node"
+	"github.com/surajsharma/kanastar/utils"
 )
 
 func init() {
@@ -26,6 +27,10 @@ var nodeCmd = &cobra.Command{
 	The node command allows a user to get the information about the nodes in the cluster.`,
 
 	Run: func(cmd *cobra.Command, args []string) {
+		if !utils.IsDockerDaemonUp() {
+			return
+		}
+
 		manager, _ := cmd.Flags().GetString("manager")
 
 		url := fmt.Sprintf("http://%s/nodes", manager)

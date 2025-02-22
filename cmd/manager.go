@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/surajsharma/kanastar/manager"
+	"github.com/surajsharma/kanastar/utils"
 )
 
 // managerCmd represents the manager command
@@ -20,6 +21,10 @@ var managerCmd = &cobra.Command{
 	-• Periodically polling workers to get task updates`,
 
 	Run: func(cmd *cobra.Command, args []string) {
+		if !utils.IsDockerDaemonUp() {
+			return
+		}
+
 		host, _ := cmd.Flags().GetString("host")
 		port, _ := cmd.Flags().GetInt("port")
 		workers, _ := cmd.Flags().GetStringSlice("workers")
@@ -35,6 +40,7 @@ var managerCmd = &cobra.Command{
 		// go m.UpdateNodeStats()
 		log.Printf("[cmd] starting manager API on http://%s:%d", host, port)
 		api.Start()
+
 	},
 }
 

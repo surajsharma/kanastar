@@ -1,4 +1,4 @@
-#> [!CAUTION]
+> [!CAUTION]
 > Highly experimental release in active development, not suitable for production yet.
 
 # kanastar

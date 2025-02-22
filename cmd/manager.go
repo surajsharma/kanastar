@@ -15,10 +15,10 @@ var managerCmd = &cobra.Command{
 	Long: `Kanastar manager command.
 
 	The manager controls the orchestration system and is responsible for:
-	-• Accepting tasks from users
-	-• Scheduling tasks onto worker nodes
-	-• Rescheduling tasks in the event of a node failure
-	-• Periodically polling workers to get task updates`,
+	◻ Accepting tasks from users
+	◻ Scheduling tasks onto worker nodes
+	◻ Rescheduling tasks in the event of a node failure
+	◻ Periodically polling workers to get task updates`,
 
 	Run: func(cmd *cobra.Command, args []string) {
 		if !utils.IsDockerDaemonUp() {

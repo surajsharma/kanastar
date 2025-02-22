@@ -54,6 +54,7 @@ var runCmd = &cobra.Command{
 		log.Printf("[cmd] using file: %v\n", fullFilePath)
 
 		data, err := os.ReadFile(filename)
+
 		if err != nil {
 			log.Fatalf("[cmd] unable to read file: %v", filename)
 		}
@@ -62,6 +63,7 @@ var runCmd = &cobra.Command{
 
 		url := fmt.Sprintf("http://%s/tasks", manager)
 		resp, err := http.Post(url, "application/json", bytes.NewBuffer(data))
+
 		if err != nil {
 			log.Panic(err)
 		}

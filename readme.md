@@ -2,7 +2,7 @@
 simple, scalable docker orchestrator written in go.
 
 
-![kanastar](./docs/images/kanastar_small.png)
+<img src="./docs/images/kanastar.png" width="250">
 
 >  "I will show you the home of the defiantly disobedient." (Quran 7:145)
 

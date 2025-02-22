@@ -29,11 +29,11 @@ jobs:
 
       - name: Build
         run: |
-          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o kanastar-${{ matrix.goos }}-${{ matrix.goarch }}
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o kanastar
 
-      - name: Archive binaries
+      - name: Make execuable and archive binaries
         run: |
-          tar -czvf kanastar-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz kanastar-${{ matrix.goos }}-${{ matrix.goarch }}
+          chmod +x kanastar && tar -czvf kanastar-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz kanastar
 
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v2

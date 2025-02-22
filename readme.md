@@ -1,10 +1,13 @@
 ## kanastar
 simple, scalable docker orchestrator written in go.
 
+[![Build and Release](https://github.com/surajsharma/kanastar/actions/workflows/release.yml/badge.svg)](https://github.com/surajsharma/kanastar/actions/workflows/release.yml)
+
 
 <img src="./docs/images/kanastar.png" width="250">
 
 >  "I will show you the home of the defiantly disobedient." (Quran 7:145)
+
 
 ## Architecture Overview
 

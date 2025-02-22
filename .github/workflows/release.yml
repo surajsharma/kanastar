@@ -23,15 +23,15 @@ jobs:
 
       - name: Build
         run: |
-          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o myapp-${{ matrix.goos }}-${{ matrix.goarch }}
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o kanastar-${{ matrix.goos }}-${{ matrix.goarch }}
 
       - name: Archive binaries
         run: |
-          tar -czvf myapp-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz myapp-${{ matrix.goos }}-${{ matrix.goarch }}
+          tar -czvf kanastar-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz kanastar-${{ matrix.goos }}-${{ matrix.goarch }}
 
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v2
         with:
-          files: myapp-*.tar.gz
+          files: kanastar-*.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

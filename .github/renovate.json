@@ -1,0 +1,34 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:base"],
+  "packageRules": [
+    {
+      "matchManagers": ["gomod"],
+      "groupName": "Go Dependencies",
+      "automerge": false
+    },
+    {
+      "matchDepTypes": ["indirect"],
+      "groupName": "Go Indirect Dependencies",
+      "automerge": false
+    },
+    {
+      "matchPackagePatterns": ["^go.opentelemetry.io"],
+      "groupName": "OpenTelemetry Packages"
+    },
+    {
+      "matchPackagePrefixes": ["github.com/docker/", "github.com/moby/", "github.com/containerd/"],
+      "groupName": "Docker & Containerd Dependencies"
+    },
+    {
+      "matchPackagePrefixes": ["github.com/spf13/"],
+      "groupName": "spf13 CLI Libraries"
+    }
+  ],
+  "enabledManagers": ["gomod"],
+  "rangeStrategy": "bump",
+  "prHourlyLimit": 5,
+  "prConcurrentLimit": 10,
+  "labels": ["dependencies"],
+  "schedule": ["before 3am on monday"]
+}

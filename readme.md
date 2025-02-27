@@ -37,4 +37,8 @@ Flags:
 Use "kanactl [command] --help" for more information about a command.
 ```
 
+## Building
+
+- Pull the repo and run `make build` in the dir with the `Makefile`
+
 [changelog](./CHANGELOG)

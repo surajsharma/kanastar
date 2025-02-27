@@ -6,8 +6,8 @@ on:
       - 'v*'
 
 permissions: # Add detailed permissions
-  contents: write
-  packages: write
+  contents: read
+  packages: read
   issues: write
   pull-requests: write
   

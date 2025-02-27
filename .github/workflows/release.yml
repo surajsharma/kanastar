@@ -29,15 +29,15 @@ jobs:
 
       - name: Build
         run: |
-          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o kanastar
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o kanactl
 
       - name: Make execuable and archive binaries
         run: |
-          chmod +x kanastar && tar -czvf kanastar-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz kanastar
+          chmod +x kanactl && tar -czvf kanactl-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz kanactl
 
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v2
         with:
-          files: kanastar-*.tar.gz
+          files: kanactl-*.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

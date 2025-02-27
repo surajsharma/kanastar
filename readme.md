@@ -20,7 +20,7 @@ simple, scalable docker orchestrator written in go.
 Kanastar is a dead simple docker orchestrator designed with spot VMs in mind
 
 Usage:
-  kanastar [command]
+  kanactl [command]
 
 Available Commands:
   help        Help about any command
@@ -32,9 +32,9 @@ Available Commands:
   worker      Worker command to operate a Kanastar worker node.
 
 Flags:
-  -h, --help   help for kanastar
+  -h, --help   help for kanactl
 
-Use "kanastar [command] --help" for more information about a command.
+Use "kanactl [command] --help" for more information about a command.
 ```
 
 [changelog](./CHANGELOG)
